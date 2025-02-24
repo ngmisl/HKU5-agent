@@ -1,3 +1,5 @@
+[![CodeQL](https://github.com/ngmisl/HKU5-agent/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/ngmisl/HKU5-agent/actions/workflows/github-code-scanning/codeql)
+
 # HKU5 Risk Assessment Tool
 
 A Python-based tool that monitors and assesses the risk level of the HKU5 coronavirus using AI-powered analysis of the latest research and news. The tool uses OpenRouter.ai's free models (like Google's Gemini) to provide detailed risk assessments and summaries.
