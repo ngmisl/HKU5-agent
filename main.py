@@ -7,7 +7,9 @@ from tools import assess_virus_risk
 dotenv.load_dotenv()
 
 openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
-model_id = os.getenv("MODEL_ID", "openrouter/google/gemini-2.0-flash-lite-preview-02-05:free")
+model_id = os.getenv(
+    "MODEL_ID", "openrouter/google/gemini-2.0-flash-lite-preview-02-05:free"
+)
 
 if not openrouter_api_key:
     raise EnvironmentError(
@@ -57,6 +59,8 @@ Please summarize the main findings and developments regarding HKU5 from these so
     # Use the risk assessment tool
     risk_prompt = f"""Use the assess_virus_risk tool to evaluate HKU5 based on this information:
 {summary}
+
+and give a detailed breakdown of the risk factors.
 
 The date is {current_date.strftime('%m/%d/%y %H:%M:%S')}"""
 
