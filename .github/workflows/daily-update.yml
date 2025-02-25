@@ -7,7 +7,7 @@ on:
 jobs:
   update-and-deploy:
     runs-on: ubuntu-latest
-    environment: production
+    environment: env
     env:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       MODEL_ID: ${{ secrets.MODEL_ID }}
