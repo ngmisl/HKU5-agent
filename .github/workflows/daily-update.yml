@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -21,8 +21,15 @@ jobs:
           curl -LsSf https://astral.sh/uv/install.sh | sh
           uv --version
 
-      - name: Install dependencies
-        run: uv pip install -r requirements.txt
+      - name: Create and activate virtual environment
+        run: |
+          uv venv
+          . .venv/bin/activate
+
+      - name: Install package
+        run: |
+          . .venv/bin/activate
+          uv pip install -e .
 
       - name: Run update script
         env:
@@ -31,10 +38,11 @@ jobs:
           OR_SITE_URL: ${{ secrets.OR_SITE_URL }}
           OR_APP_NAME: ${{ secrets.OR_APP_NAME }}
         run: |
+          . .venv/bin/activate
           uv run main.py
 
       - name: Deploy to Orbiter
-        uses: orbiterhost/orbiter-github-actions@v0.1.5
+        uses: orbiterhost/orbiter-github-actions@v0.1.4
         with:
           project-name: "arewefucked"
           build-dir: "./dist"

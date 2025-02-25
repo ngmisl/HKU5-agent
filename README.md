@@ -28,8 +28,13 @@ Real-time risk assessment dashboard for emerging viral threats, focusing on HKU5
 ## Local Development
 
 ```bash
-# Install dependencies
-uv pip install -r requirements.txt
+# Create and activate virtual environment
+uv venv
+source .venv/bin/activate  # On Linux/Mac
+# or .venv\Scripts\activate  # On Windows
+
+# Install package in development mode
+uv pip install -e .
 
 # Run the script
 uv run main.py

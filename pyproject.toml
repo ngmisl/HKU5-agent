@@ -1,9 +1,14 @@
 [project]
-name = "hku5-agent"
+name = "smolagent"
 version = "0.1.0"
-description = "AI-powered risk assessment tool for HKU5 coronavirus"
-authors = [{ name = "Aunova", email = "your.email@example.com" }]
-dependencies = ["smolagents[litellm]>=0.1.0", "python-dotenv>=1.0.0"]
+description = "Virus Risk Assessment Dashboard"
+authors = [{ name = "ngmisl", email = "ngmisl@orbiter.website" }]
+dependencies = [
+    "smolagents>=0.1.0",
+    "duckduckgo-search>=7.5.0",
+    "python-dotenv>=1.0.0",
+    "litellm>=1.61.16",
+]
 requires-python = ">=3.12"
 readme = "README.md"
 license = { text = "MIT" }
@@ -17,7 +22,7 @@ packages = ["."]
 
 [tool.rye]
 managed = true
-dev-dependencies = ["black>=23.12.1", "ruff>=0.1.9", "mypy>=1.8.0"]
+dev-dependencies = []
 
 [tool.ruff]
 line-length = 88
