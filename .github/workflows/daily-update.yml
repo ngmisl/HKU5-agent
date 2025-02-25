@@ -7,6 +7,13 @@ on:
 jobs:
   update-and-deploy:
     runs-on: ubuntu-latest
+    environment: production
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      MODEL_ID: ${{ secrets.MODEL_ID }}
+      OR_SITE_URL: ${{ secrets.OR_SITE_URL }}
+      OR_APP_NAME: ${{ secrets.OR_APP_NAME }}
+      ORBITER_API_KEY: ${{ secrets.ORBITER_API_KEY }}
 
     steps:
       - uses: actions/checkout@v3
@@ -32,11 +39,6 @@ jobs:
           uv pip install -e .
 
       - name: Run update script
-        env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          MODEL_ID: ${{ secrets.MODEL_ID }}
-          OR_SITE_URL: ${{ secrets.OR_SITE_URL }}
-          OR_APP_NAME: ${{ secrets.OR_APP_NAME }}
         run: |
           . .venv/bin/activate
           uv run main.py
