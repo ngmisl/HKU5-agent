@@ -1,0 +1,14 @@
+{
+  "name": "virus-risk-dashboard",
+  "version": "1.0.0",
+  "description": "Real-time risk assessment dashboard for emerging viral threats",
+  "scripts": {
+    "build": "echo 'No build step needed - using static files'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ngmisl/HKU5-agent.git"
+  },
+  "author": "ngmisl",
+  "license": "MIT"
+}
