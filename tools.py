@@ -1,6 +1,7 @@
 from smolagents import tool  # type: ignore
 from typing import Dict, Any
 
+
 @tool
 def assess_virus_risk(virus_name: str, current_data: str, assessment_date: str) -> str:
     """
@@ -20,16 +21,17 @@ def assess_virus_risk(virus_name: str, current_data: str, assessment_date: str) 
     prompt = f"""Based on this information about {virus_name}:
 {current_data}
 
-Please provide a concise summary of the key findings and current situation, including:
-- Major developments
-- Geographic spread
-- Notable incidents or outbreaks
-- Current research status
-- Public health measures
-
-The date is {assessment_date}"""
+Please provide a risk assessment in this exact format:
+RISK_LEVEL: [number between 1-10]
+TRANSMISSION: [analysis of transmission potential]
+MORTALITY: [analysis of mortality rates]
+MUTATION: [analysis of mutation potential]
+CONTAINMENT: [analysis of containment status]
+TREATMENT: [analysis of available treatments]
+SUMMARY: [brief explanation of overall risk]"""
 
     return prompt
+
 
 @tool
 def assess_h5n1_risk(current_data: str, assessment_date: str) -> str:
@@ -49,19 +51,22 @@ def assess_h5n1_risk(current_data: str, assessment_date: str) -> str:
     prompt = f"""Based on this information about H5N1 (Avian Influenza):
 {current_data}
 
-Please provide a concise summary of the key findings and current situation, including:
-- Major developments in human and animal cases
-- Geographic spread and affected populations
-- Notable outbreaks or clusters
-- Current research and surveillance efforts
-- Public health measures and recommendations
-
-The date is {assessment_date}"""
+Please provide a risk assessment in this exact format:
+RISK_LEVEL: [number between 1-10]
+TRANSMISSION: [analysis of transmission potential]
+MORTALITY: [analysis of mortality rates]
+MUTATION: [analysis of mutation potential]
+CONTAINMENT: [analysis of containment status]
+TREATMENT: [analysis of available treatments]
+SUMMARY: [brief explanation of overall risk]"""
 
     return prompt
 
+
 @tool
-def format_risk_assessment(virus_name: str, summary_data: str, assessment_date: str) -> Dict[str, Any]:
+def format_risk_assessment(
+    virus_name: str, summary_data: str, assessment_date: str
+) -> Dict[str, Any]:
     """
     Formats a risk assessment based on summarized virus data.
 
@@ -76,15 +81,13 @@ def format_risk_assessment(virus_name: str, summary_data: str, assessment_date: 
     prompt = f"""Based on this summary about {virus_name}:
 {summary_data}
 
-Analyze the data and provide a risk assessment in exactly this format:
+Please provide a risk assessment in this exact format:
 RISK_LEVEL: [number between 1-10]
-TRANSMISSION: [detailed analysis of transmission potential and patterns]
-MORTALITY: [analysis of known or potential mortality rates]
-MUTATION: [analysis of genetic changes and adaptation potential]
-CONTAINMENT: [evaluation of current containment measures]
-TREATMENT: [status of available treatments and vaccines]
-SUMMARY: [brief explanation of the overall risk assessment]
-
-The date is {assessment_date}"""
+TRANSMISSION: [analysis of transmission potential]
+MORTALITY: [analysis of mortality rates]
+MUTATION: [analysis of mutation potential]
+CONTAINMENT: [analysis of containment status]
+TREATMENT: [analysis of available treatments]
+SUMMARY: [brief explanation of overall risk]"""
 
     return prompt

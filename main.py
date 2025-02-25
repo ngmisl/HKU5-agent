@@ -37,7 +37,13 @@ agent = CodeAgent(
 
 def extract_content(agent_response: str) -> str:
     """Extract content from agent response"""
-    return agent_response.strip()
+    # Clean up any trailing newlines or extra whitespace
+    lines = []
+    for line in agent_response.split('\n'):
+        line = line.strip()
+        if line and not line.startswith('The date is'):
+            lines.append(line)
+    return '\n'.join(lines)
 
 
 def main() -> None:
