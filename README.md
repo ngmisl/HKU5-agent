@@ -1,4 +1,4 @@
-[![CodeQL](https://github.com/ngmisl/HKU5-agent/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/ngmisl/HKU5-agent/actions/workflows/github-code-scanning/codeql)
+[![CodeQL](https://github.com/ngmisl/HKU5-agent/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/ngmisl/HKU5-agent/actions/workflows/github-code-scanning/codeql) [![Daily Update and Deploy](https://github.com/ngmisl/HKU5-agent/actions/workflows/daily-update.yml/badge.svg)](https://github.com/ngmisl/HKU5-agent/actions/workflows/daily-update.yml)
 
 # Virus Risk Dashboard
 
