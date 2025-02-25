@@ -34,7 +34,7 @@ jobs:
           uv run main.py
 
       - name: Deploy to Orbiter
-        uses: orbiterhost/orbiter-github-actions@v0.1.4
+        uses: orbiterhost/orbiter-github-actions@v0.1.5
         with:
           project-name: "arewefucked"
           build-dir: "./dist"
