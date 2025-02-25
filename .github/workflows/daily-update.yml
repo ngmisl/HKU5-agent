@@ -1,0 +1,42 @@
+name: Daily Update and Deploy
+on:
+  schedule:
+    - cron: "0 0 * * *" # Runs at 00:00 UTC every day
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  update-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv --version
+
+      - name: Install dependencies
+        run: uv pip install -r requirements.txt
+
+      - name: Run update script
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          MODEL_ID: ${{ secrets.MODEL_ID }}
+          OR_SITE_URL: ${{ secrets.OR_SITE_URL }}
+          OR_APP_NAME: ${{ secrets.OR_APP_NAME }}
+        run: |
+          uv run main.py
+
+      - name: Deploy to Orbiter
+        uses: orbiterhost/orbiter-github-actions@v0.1.4
+        with:
+          project-name: "arewefucked"
+          build-dir: "./dist"
+          api-key: ${{ secrets.ORBITER_API_KEY }}
+          node-version: "20.x"

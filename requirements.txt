@@ -1,0 +1,4 @@
+smolagents>=0.1.0
+duckduckgo-search>=4.4.0
+python-dotenv>=1.0.0
+litellm>=1.30.0
