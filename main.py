@@ -5,14 +5,19 @@ import json
 from datetime import datetime
 from tools import assess_virus_risk, assess_h5n1_risk, format_risk_assessment
 
-dotenv.load_dotenv()
+# Try to load .env if it exists, but don't fail if it doesn't
+dotenv.load_dotenv(override=False)
 
 # Get environment variables
-openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
-model_id = os.getenv("MODEL_ID", "openrouter/google/gemini-2.0-flash-lite-preview-02-05:free")
+openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
+model_id = os.environ.get(
+    "MODEL_ID", "openrouter/google/gemini-2.0-flash-lite-preview-02-05:free"
+)
 
 if not openrouter_api_key:
-    raise EnvironmentError("OpenRouter API key not found. Set OPENROUTER_API_KEY in .env")
+    raise EnvironmentError(
+        "OpenRouter API key not found. Set OPENROUTER_API_KEY in environment or .env file"
+    )
 
 # Initialize model with OpenRouter configuration
 model = LiteLLMModel(
@@ -29,9 +34,11 @@ agent = CodeAgent(
     model=model,
 )
 
+
 def extract_content(agent_response: str) -> str:
     """Extract content from agent response"""
     return agent_response.strip()
+
 
 def main() -> None:
     """Main function to generate virus risk assessment"""
@@ -39,30 +46,34 @@ def main() -> None:
 
     # Generate risk assessments
     print("Generating HKU5 assessment...")
-    hku5_assessment = extract_content(agent(format_risk_assessment(
-        "HKU5",
-        "HKU5 is a bat coronavirus that can potentially infect human cells through ACE2 receptors.",
-        timestamp
-    )))
+    hku5_assessment = extract_content(
+        agent(
+            format_risk_assessment(
+                "HKU5",
+                "HKU5 is a bat coronavirus that can potentially infect human cells through ACE2 receptors.",
+                timestamp,
+            )
+        )
+    )
 
     print("Generating H5N1 assessment...")
-    h5n1_assessment = extract_content(agent(format_risk_assessment(
-        "H5N1",
-        "H5N1 is a highly pathogenic avian influenza strain affecting birds and occasionally humans.",
-        timestamp
-    )))
+    h5n1_assessment = extract_content(
+        agent(
+            format_risk_assessment(
+                "H5N1",
+                "H5N1 is a highly pathogenic avian influenza strain affecting birds and occasionally humans.",
+                timestamp,
+            )
+        )
+    )
 
     # Format output
     output = {
         "timestamp": timestamp,
         "viruses": {
-            "HKU5": {
-                "risk_assessment": hku5_assessment
-            },
-            "H5N1": {
-                "risk_assessment": h5n1_assessment
-            }
-        }
+            "HKU5": {"risk_assessment": hku5_assessment},
+            "H5N1": {"risk_assessment": h5n1_assessment},
+        },
     }
 
     # Save to file
@@ -71,6 +82,7 @@ def main() -> None:
         json.dump(output, f, indent=2)
 
     print("Assessment complete. Results saved to dist/data.json")
+
 
 if __name__ == "__main__":
     main()
