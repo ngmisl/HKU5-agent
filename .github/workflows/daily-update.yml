@@ -16,7 +16,7 @@ jobs:
       ORBITER_API_KEY: ${{ secrets.ORBITER_API_KEY }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
