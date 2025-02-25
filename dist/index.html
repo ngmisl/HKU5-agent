@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virus Risk Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #1a237e;
+            --text-color: #333;
+            --background-color: #f5f7fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: var(--background-color);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+            border-radius: 12px;
+            color: white;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .dashboard-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .assessment-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .assessment-item {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e1e4e8;
+        }
+
+        .assessment-item h4 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .assessment-item p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-color);
+        }
+
+        .virus-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .virus-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .virus-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .risk-level {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .risk-low {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .risk-moderate {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .risk-high {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .section {
+            margin-top: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e1e4e8;
+        }
+
+        .footer {
+            margin-top: 4rem;
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid #e1e4e8;
+            color: #666;
+        }
+
+        .footer p {
+            margin-bottom: 1rem;
+        }
+
+        .footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .assessment-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .virus-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .risk-level {
+                width: 100%;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="dashboard-header">
+            <h1>Virus Risk Dashboard</h1>
+            <p>Real-time risk assessment for emerging viral threats</p>
+        </header>
+
+        <div id="virus-container"></div>
+
+        <footer class="footer">
+            <p>Made with AI, the AI may hallucinate.</p>
+            <p><a href="https://fourzerofour.fkey.id/" target="_blank" rel="noopener noreferrer">Support this project ❤️</a></p>
+        </footer>
+    </div>
+
+    <script>
+        async function fetchData() {
+            try {
+                const response = await fetch('data.json');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return null;
+            }
+        }
+
+        function getRiskLevelClass(level) {
+            if (level <= 2) return 'risk-low';
+            if (level <= 3) return 'risk-moderate';
+            return 'risk-high';
+        }
+
+        function formatRiskLevel(assessment) {
+            const match = assessment.match(/RISK_LEVEL:\s*(\d+)/);
+            return match ? match[1] : '?';
+        }
+
+        function formatSection(title, content) {
+            const match = content.match(new RegExp(title + ":\\s*([^\\n]+)"));
+            return match ? match[1].trim() : 'No data available';
+        }
+
+        function createVirusCard(name, assessment) {
+            const riskLevel = formatRiskLevel(assessment);
+            const card = document.createElement('div');
+            card.className = 'virus-card';
+            
+            card.innerHTML = `
+                <div class="virus-header">
+                    <h2 class="virus-name">${name}</h2>
+                    <div class="risk-level ${getRiskLevelClass(riskLevel)}">
+                        Risk Level: ${riskLevel}
+                    </div>
+                </div>
+                <div class="section">
+                    <h3 class="section-title">Risk Assessment</h3>
+                    <div class="assessment-grid">
+                        <div class="assessment-item">
+                            <h4>Transmission Risk</h4>
+                            <p>${formatSection('TRANSMISSION', assessment)}</p>
+                        </div>
+                        <div class="assessment-item">
+                            <h4>Mortality Rate</h4>
+                            <p>${formatSection('MORTALITY', assessment)}</p>
+                        </div>
+                        <div class="assessment-item">
+                            <h4>Mutation Risk</h4>
+                            <p>${formatSection('MUTATION', assessment)}</p>
+                        </div>
+                        <div class="assessment-item">
+                            <h4>Containment Status</h4>
+                            <p>${formatSection('CONTAINMENT', assessment)}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        async function updateDashboard() {
+            const data = await fetchData();
+            if (!data) return;
+
+            const container = document.getElementById('virus-container');
+            container.innerHTML = '';
+
+            for (const [name, info] of Object.entries(data.viruses)) {
+                container.appendChild(createVirusCard(name, info.risk_assessment));
+            }
+        }
+
+        // Initial load
+        updateDashboard();
+
+        // Refresh every 5 minutes
+        setInterval(updateDashboard, 5 * 60 * 1000);
+    </script>
+</body>
+</html>

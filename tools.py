@@ -1,9 +1,10 @@
 from smolagents import tool  # type: ignore
+from typing import Dict, Any
 
 @tool
 def assess_virus_risk(virus_name: str, current_data: str, assessment_date: str) -> str:
     """
-    Evaluates the current risk scenario of a virus based on provided data.
+    Summarizes current information about a virus from news/research data.
 
     Args:
         virus_name: Name of the virus to assess (e.g., "HKU5")
@@ -11,84 +12,79 @@ def assess_virus_risk(virus_name: str, current_data: str, assessment_date: str) 
         assessment_date: Date when this assessment is being made
 
     Returns:
-        A string containing the risk assessment in the format:
-        "Risk Level: X/10
-
-        Detailed Assessment:
-        - Transmission Rate: [description]
-        - Mortality Rate: [description]
-        - Mutation Risk: [description]
-        - Containment Status: [description]
-        - Treatment Availability: [description]"
+        A summary of the current virus situation and key findings
     """
-    # Analyze the data to determine risk factors
-    if "SARS-CoV-2" in current_data and "receptor" in current_data:
-        transmission_risk = "High potential - uses same receptor as SARS-CoV-2"
-        transmission_score = 8
-    else:
-        transmission_risk = "Unknown - insufficient data on transmission mechanisms"
-        transmission_score = 5
+    if not current_data:
+        return "No current data available for analysis."
 
-    if "no human cases" in current_data.lower():
-        mortality_risk = "Unknown - no human cases reported yet"
-        mortality_score = 5
-        containment_status = "Currently contained - no human cases reported"
-        containment_score = 2
-    else:
-        mortality_risk = "Unknown - data on human cases pending"
-        mortality_score = 6
-        containment_status = "Status unclear - monitoring required"
-        containment_score = 6
+    prompt = f"""Based on this information about {virus_name}:
+{current_data}
 
-    if "MERS" in current_data:
-        mutation_risk = "High - belongs to merbecovirus subgenus like MERS"
-        mutation_score = 7
-    else:
-        mutation_risk = "Unknown - insufficient data on viral genetics"
-        mutation_score = 5
+Please provide a concise summary of the key findings and current situation, including:
+- Major developments
+- Geographic spread
+- Notable incidents or outbreaks
+- Current research status
+- Public health measures
 
-    if "coronavirus treatments" in current_data.lower():
-        treatment_risk = "Limited - existing coronavirus treatments may be applicable"
-        treatment_score = 4
-    else:
-        treatment_risk = "None available - specific treatments not yet developed"
-        treatment_score = 8
+The date is {assessment_date}"""
 
-    # Calculate weighted risk level
-    weights = {
-        'transmission': 0.3,
-        'mortality': 0.2,
-        'mutation': 0.2,
-        'containment': 0.2,
-        'treatment': 0.1
-    }
+    return prompt
 
-    risk_level = round(
-        transmission_score * weights['transmission'] +
-        mortality_score * weights['mortality'] +
-        mutation_score * weights['mutation'] +
-        containment_score * weights['containment'] +
-        treatment_score * weights['treatment']
-    )
+@tool
+def assess_h5n1_risk(current_data: str, assessment_date: str) -> str:
+    """
+    Summarizes current information about H5N1 from news/research data.
 
-    # Format the response
-    response = f"""Risk Level: {risk_level}/10
+    Args:
+        current_data: Current information about H5N1 from news/research
+        assessment_date: Date when this assessment is being made
 
-Detailed Assessment:
-- Transmission Rate: {transmission_risk}
-- Mortality Rate: {mortality_risk}
-- Mutation Risk: {mutation_risk}
-- Containment Status: {containment_status}
-- Treatment Availability: {treatment_risk}
+    Returns:
+        A summary of the current H5N1 situation and key findings
+    """
+    if not current_data:
+        return "No current data available for analysis."
 
-Risk Level Explanation:
-{risk_level}/10 - Risk assessment based on:
-1. Transmission potential: {transmission_score}/10 (30% weight)
-2. Mortality uncertainty: {mortality_score}/10 (20% weight)
-3. Mutation risk: {mutation_score}/10 (20% weight)
-4. Current containment: {containment_score}/10 (20% weight)
-5. Treatment options: {treatment_score}/10 (10% weight)
+    prompt = f"""Based on this information about H5N1 (Avian Influenza):
+{current_data}
 
-This assessment is dynamic and will be updated as new information becomes available."""
+Please provide a concise summary of the key findings and current situation, including:
+- Major developments in human and animal cases
+- Geographic spread and affected populations
+- Notable outbreaks or clusters
+- Current research and surveillance efforts
+- Public health measures and recommendations
 
-    return response
+The date is {assessment_date}"""
+
+    return prompt
+
+@tool
+def format_risk_assessment(virus_name: str, summary_data: str, assessment_date: str) -> Dict[str, Any]:
+    """
+    Formats a risk assessment based on summarized virus data.
+
+    Args:
+        virus_name: Name of the virus (e.g., "HKU5" or "H5N1")
+        summary_data: Summarized information about the virus
+        assessment_date: Date of the assessment
+
+    Returns:
+        A dictionary containing the formatted risk assessment with all required fields
+    """
+    prompt = f"""Based on this summary about {virus_name}:
+{summary_data}
+
+Analyze the data and provide a risk assessment in exactly this format:
+RISK_LEVEL: [number between 1-10]
+TRANSMISSION: [detailed analysis of transmission potential and patterns]
+MORTALITY: [analysis of known or potential mortality rates]
+MUTATION: [analysis of genetic changes and adaptation potential]
+CONTAINMENT: [evaluation of current containment measures]
+TREATMENT: [status of available treatments and vaccines]
+SUMMARY: [brief explanation of the overall risk assessment]
+
+The date is {assessment_date}"""
+
+    return prompt
