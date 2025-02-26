@@ -3,7 +3,11 @@ import dotenv
 import os
 import json
 from datetime import datetime
-from tools import assess_virus_risk, assess_h5n1_risk  # using the provided tools.py functions
+from tools import (
+    assess_virus_risk,
+    assess_h5n1_risk,
+    clean_agent_response,
+)  # Added new tool import
 
 # Load environment variables from .env if available
 dotenv.load_dotenv(override=False)
@@ -32,18 +36,10 @@ search_tool = DuckDuckGoSearchTool()
 
 # Initialize the CodeAgent with the tools (including our risk assessment tools)
 agent = CodeAgent(
-    tools=[search_tool, assess_virus_risk, assess_h5n1_risk],
+    tools=[search_tool, assess_virus_risk, assess_h5n1_risk, clean_agent_response],
     model=model,
 )
 
-def extract_content(agent_response: str) -> str:
-    """Extracts and cleans response text from the agent."""
-    lines = []
-    for line in agent_response.split('\n'):
-        line = line.strip()
-        if line and not line.startswith('The date is'):
-            lines.append(line)
-    return "\n".join(lines)
 
 def main() -> None:
     """Main function to retrieve news and generate risk assessments for HKU5 and H5N1."""
@@ -62,7 +58,8 @@ def main() -> None:
         f"HKU5 is a bat coronavirus that can potentially infect human cells through ACE2 receptors. Recent news: {hku5_news}",
         timestamp,
     )
-    hku5_assessment = extract_content(agent(hku5_prompt))
+    hku5_assessment_raw = agent(hku5_prompt)
+    hku5_assessment = clean_agent_response(hku5_assessment_raw)
 
     # Generate H5N1 risk assessment using the assess_h5n1_risk tool
     print("Generating H5N1 risk assessment...")
@@ -70,9 +67,10 @@ def main() -> None:
         f"H5N1 is a highly pathogenic avian influenza strain affecting birds and occasionally humans. Recent news: {h5n1_news}",
         timestamp,
     )
-    h5n1_assessment = extract_content(agent(h5n1_prompt))
+    h5n1_assessment_raw = agent(h5n1_prompt)
+    h5n1_assessment = clean_agent_response(h5n1_assessment_raw)
 
-    # Format the output with the assessments and news snippets
+    # Format the output with the cleaned assessments and news snippets
     output = {
         "timestamp": timestamp,
         "viruses": {
@@ -87,6 +85,7 @@ def main() -> None:
         json.dump(output, f, indent=2)
 
     print("Assessment complete. Results saved to dist/data.json")
+
 
 if __name__ == "__main__":
     main()

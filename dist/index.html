@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Virus Risk Dashboard</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <style>
       :root {
         --primary-color: #1a237e;
@@ -192,7 +192,9 @@
       <header class="dashboard-header">
         <h1>Virus Risk Dashboard</h1>
         <p>Real-time risk assessment for emerging viral threats</p>
-        <div class="last-update">Last Updated: <span id="lastUpdate">Loading...</span></div>
+        <div class="last-update">
+          Last Updated: <span id="lastUpdate">Loading...</span>
+        </div>
       </header>
 
       <div id="virus-container"></div>
@@ -223,55 +225,56 @@
       }
 
       function getRiskLevelClass(level) {
-        if (level <= 2) return "risk-low";
-        if (level <= 3) return "risk-moderate";
+        if (level <= 3) return "risk-low";
+        if (level <= 6) return "risk-moderate";
         return "risk-high";
       }
 
-      function formatRiskLevel(assessment) {
-        const match = assessment.match(/RISK_LEVEL:\s*(\d+)/);
-        return match ? match[1] : "?";
-      }
-
-      function formatSection(title, content) {
-        const match = content.match(new RegExp(title + ":\\s*([^\\n]+)"));
-        return match ? match[1].trim() : "No data available";
-      }
-
-      function createVirusCard(name, assessment) {
-        const riskLevel = formatRiskLevel(assessment);
+      function createVirusCard(name, assessmentData) {
         const card = document.createElement("div");
         card.className = "virus-card";
 
+        // Determine risk level and get appropriate class
+        const riskLevel = assessmentData.risk_level || 0;
+        const riskClass = getRiskLevelClass(riskLevel);
+
         card.innerHTML = `
-                <div class="virus-header">
-                    <h2 class="virus-name">${name}</h2>
-                    <div class="risk-level ${getRiskLevelClass(riskLevel)}">
-                        Risk Level: ${riskLevel}
-                    </div>
-                </div>
-                <div class="section">
-                    <h3 class="section-title">Risk Assessment</h3>
-                    <div class="assessment-grid">
-                        <div class="assessment-item">
-                            <h4>Transmission Risk</h4>
-                            <p>${formatSection("TRANSMISSION", assessment)}</p>
-                        </div>
-                        <div class="assessment-item">
-                            <h4>Mortality Rate</h4>
-                            <p>${formatSection("MORTALITY", assessment)}</p>
-                        </div>
-                        <div class="assessment-item">
-                            <h4>Mutation Risk</h4>
-                            <p>${formatSection("MUTATION", assessment)}</p>
-                        </div>
-                        <div class="assessment-item">
-                            <h4>Containment Status</h4>
-                            <p>${formatSection("CONTAINMENT", assessment)}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
+          <div class="virus-header">
+            <h2 class="virus-name">${name}</h2>
+            <div class="risk-level ${riskClass}">
+              Risk Level: ${riskLevel}
+            </div>
+          </div>
+          <div class="section">
+            <h3 class="section-title">Risk Assessment</h3>
+            <div class="assessment-grid">
+              <div class="assessment-item">
+                <h4>Transmission Risk</h4>
+                <p>${assessmentData.transmission || "No data available"}</p>
+              </div>
+              <div class="assessment-item">
+                <h4>Mortality Rate</h4>
+                <p>${assessmentData.mortality || "No data available"}</p>
+              </div>
+              <div class="assessment-item">
+                <h4>Mutation Risk</h4>
+                <p>${assessmentData.mutation || "No data available"}</p>
+              </div>
+              <div class="assessment-item">
+                <h4>Containment Status</h4>
+                <p>${assessmentData.containment || "No data available"}</p>
+              </div>
+              <div class="assessment-item">
+                <h4>Treatment Options</h4>
+                <p>${assessmentData.treatment || "No data available"}</p>
+              </div>
+              <div class="assessment-item">
+                <h4>Summary</h4>
+                <p>${assessmentData.summary || "No summary available"}</p>
+              </div>
+            </div>
+          </div>
+        `;
 
         return card;
       }
@@ -279,6 +282,8 @@
       async function updateDashboard() {
         try {
           const data = await fetchData();
+          if (!data) return;
+
           const container = document.getElementById("virus-container");
           container.innerHTML = "";
 

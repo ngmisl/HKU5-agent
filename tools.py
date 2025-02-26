@@ -91,3 +91,59 @@ TREATMENT: [analysis of available treatments]
 SUMMARY: [brief explanation of overall risk]"""
 
     return prompt
+
+
+@tool
+def clean_agent_response(response: str) -> Dict[str, Any]:
+    """
+    Cleans up agent responses and extracts the structured risk assessment data.
+
+    Args:
+        response: The raw response from the agent containing risk assessment
+
+    Returns:
+        A dictionary with cleaned and structured risk assessment data
+    """
+    # Initialize with empty strings
+    cleaned_data = {
+        "risk_level": 5,  # Default risk level
+        "transmission": "",
+        "mortality": "",
+        "mutation": "",
+        "containment": "",
+        "treatment": "",
+        "summary": ""
+    }
+
+    current_field = None
+    
+    for line in response.split("\n"):
+        line = line.strip()
+        if not line:
+            continue
+            
+        if ":" in line:
+            parts = line.split(":", 1)
+            field = parts[0].lower().strip()
+            value = parts[1].strip() if len(parts) > 1 else ""
+            
+            # Map field names
+            if field == "risk_level":
+                try:
+                    # Extract first number from value
+                    import re
+                    numbers = re.findall(r'\d+', value)
+                    if numbers:
+                        cleaned_data["risk_level"] = min(max(1, int(numbers[0])), 10)
+                except (ValueError, IndexError):
+                    pass
+            elif field in cleaned_data:
+                current_field = field
+                cleaned_data[current_field] = value
+        elif current_field and current_field != "risk_level":
+            if cleaned_data[current_field]:
+                cleaned_data[current_field] += " " + line
+            else:
+                cleaned_data[current_field] = line
+
+    return cleaned_data
