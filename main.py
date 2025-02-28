@@ -78,14 +78,10 @@ def process_virus(virus_name: str, description: str, timestamp: str) -> Dict[str
     print(f"Generating risk assessment for {virus_name}...")
     structured_prompt = f"""
     Based on the following information about {virus_name}:
-    
     {description}
     Today's date: {datetime.now().strftime('%Y-%m-%d')}.
-    
     Recent news: {news}
-    
     Perform a thorough risk assessment and return your findings in a valid JSON format with the following structure:
-    
     {{
       "risk_level": <number between 1-10>,
       "transmission": "<analysis of transmission potential>",
@@ -95,10 +91,9 @@ def process_virus(virus_name: str, description: str, timestamp: str) -> Dict[str
       "treatment": "<analysis of available treatments>",
       "summary": "<brief explanation of overall risk>"
     }}
-    
     Ensure all fields have detailed content based on the news analysis. Be sure to fill in all fields with appropriate information, even if you need to note uncertainty. Do not leave any fields empty.
     Return only valid JSON.
-    """
+    """  # noqa: E501
 
     try:
         assessment_raw = agent(structured_prompt)
@@ -120,21 +115,19 @@ def process_virus(virus_name: str, description: str, timestamp: str) -> Dict[str
         ]
         missing_fields = []
 
-        if assessment_json:
+        if isinstance(assessment_json, dict):
             for field in fields_to_check:
-                if field not in assessment_json or not assessment_json[field]:
+                if field not in assessment_json or not assessment_json.get(field):
                     missing_fields.append(field)
 
         if not assessment_json or missing_fields:
             print(
-                f"Warning: Incomplete assessment for {virus_name}. Missing fields: {missing_fields}. Retrying..."
+                f"Warning: Incomplete assessment for {virus_name}. Missing fields: {missing_fields}. Retrying..."  # noqa: E501
             )
             # Retry with a more explicit prompt
             retry_prompt = f"""
             Based on the news about {virus_name}, create a complete risk assessment JSON.
-            
             News: {news}
-            
             The JSON MUST include ALL these fields with detailed content:
             - risk_level: number from 1-10
             - transmission: detailed analysis of how it spreads
@@ -143,9 +136,8 @@ def process_virus(virus_name: str, description: str, timestamp: str) -> Dict[str
             - containment: detailed analysis of current containment
             - treatment: detailed analysis of available treatments
             - summary: summary of overall risk level
-            
             DO NOT leave any fields empty. If information is uncertain, state that in the field but provide your best assessment.
-            """
+            """  # noqa: E501
 
             retry_raw = agent(retry_prompt)
             retry_json = extract_json_from_text(retry_raw)
@@ -165,31 +157,31 @@ def process_virus(virus_name: str, description: str, timestamp: str) -> Dict[str
                     # Create a fallback for missing fields
                     for field in retry_missing_fields:
                         retry_json[field] = (
-                            f"Information about {field} for {virus_name} is limited in current reports, but assessment suggests moderate concern based on available data."
+                            f"Information about {field} for {virus_name} is limited in current reports, but assessment suggests moderate concern based on available data."  # noqa: E501
                         )
                     assessment_json = retry_json
             else:
                 # Create a complete fallback response if retry also fails
                 assessment_json = {
                     "risk_level": 5,
-                    "transmission": f"Based on news reports, {virus_name} appears to have potential for transmission, though details are limited.",
-                    "mortality": f"Information about mortality rates for {virus_name} is incomplete in current reports.",
-                    "mutation": f"The mutation potential of {virus_name} requires further research based on available data.",
-                    "containment": f"Current containment efforts for {virus_name} appear to be ongoing according to news reports.",
-                    "treatment": f"Available treatments for {virus_name} are not fully detailed in the provided information.",
-                    "summary": f"{virus_name} presents a moderate risk based on current information, though more data is needed for a comprehensive assessment.",
+                    "transmission": f"Based on news reports, {virus_name} appears to have potential for transmission, though details are limited.",  # noqa: E501
+                    "mortality": f"Information about mortality rates for {virus_name} is incomplete in current reports.",  # noqa: E501
+                    "mutation": f"The mutation potential of {virus_name} requires further research based on available data.",  # noqa: E501
+                    "containment": f"Current containment efforts for {virus_name} appear to be ongoing according to news reports.",  # noqa: E501
+                    "treatment": f"Available treatments for {virus_name} are not fully detailed in the provided information.",  # noqa: E501
+                    "summary": f"{virus_name} presents a moderate risk based on current information, though more data is needed for a comprehensive assessment.",  # noqa: E501
                 }
     except Exception as e:
         print(f"Error in {virus_name} assessment: {e}")
         # Provide default values if there's an error
         assessment_json = {
             "risk_level": 5,
-            "transmission": f"Based on news reports, {virus_name} appears to have potential for transmission, though details are limited.",
-            "mortality": f"Information about mortality rates for {virus_name} is incomplete in current reports.",
-            "mutation": f"The mutation potential of {virus_name} requires further research based on available data.",
-            "containment": f"Current containment efforts for {virus_name} appear to be ongoing according to news reports.",
-            "treatment": f"Available treatments for {virus_name} are not fully detailed in the provided information.",
-            "summary": f"{virus_name} presents a moderate risk based on current information, though more data is needed for a comprehensive assessment.",
+            "transmission": f"Based on news reports, {virus_name} appears to have potential for transmission, though details are limited.",  # noqa: E501
+            "mortality": f"Information about mortality rates for {virus_name} is incomplete in current reports.",  # noqa: E501
+            "mutation": f"The mutation potential of {virus_name} requires further research based on available data.",  # noqa: E501
+            "containment": f"Current containment efforts for {virus_name} appear to be ongoing according to news reports.",  # noqa: E501
+            "treatment": f"Available treatments for {virus_name} are not fully detailed in the provided information.",  # noqa: E501
+            "summary": f"{virus_name} presents a moderate risk based on current information, though more data is needed for a comprehensive assessment.",  # noqa: E501
         }
 
     print(f"{virus_name} assessment processed.")
@@ -205,11 +197,11 @@ def main() -> None:
     viruses = [
         {
             "name": "HKU5-CoV-2",
-            "description": "HKU5-CoV-2 is a bat coronavirus that can potentially infect human cells through ACE2 receptors.",
+            "description": "HKU5-CoV-2 is a bat coronavirus that can potentially infect human cells through ACE2 receptors.",  # noqa: E501
         },
         {
             "name": "H5N1",
-            "description": "H5N1 is a highly pathogenic avian influenza strain affecting birds and occasionally humans. It has recently been detected in dairy cattle in the United States.",
+            "description": "H5N1 is a highly pathogenic avian influenza strain affecting birds and occasionally humans. It has recently been detected in dairy cattle in the United States.",  # noqa: E501
         },
     ]
 
@@ -218,7 +210,7 @@ def main() -> None:
     for virus in viruses:
         virus_result = process_virus(virus["name"], virus["description"], timestamp)
 
-        # Directly add the result to results - we've already handled validation in the process_virus function
+        # Directly add the result to results - we've already handled validation in the process_virus function  # noqa: E501
         results[virus["name"]] = virus_result
         print(f"Added {virus['name']} assessment to results")
 

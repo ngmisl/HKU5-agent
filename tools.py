@@ -1,8 +1,44 @@
 import json
 import re
-from typing import Any, Dict
+from typing import Any, Optional, cast
 
+from pydantic import BaseModel, Field, model_validator
 from smolagents import tool  # type: ignore
+
+
+class VirusRiskAssessment(BaseModel):
+    """Model for virus risk assessment data"""
+
+    risk_level: int = Field(default=5, ge=1, le=10, description="Risk level from 1-10")
+    transmission: str = Field(
+        default="", description="Analysis of transmission potential"
+    )
+    mortality: str = Field(default="", description="Analysis of mortality rates")
+    mutation: str = Field(default="", description="Analysis of mutation potential")
+    containment: str = Field(default="", description="Analysis of containment status")
+    treatment: str = Field(default="", description="Analysis of available treatments")
+    summary: str = Field(default="", description="Brief explanation of overall risk")
+    assessment_date: str = Field(
+        default="", description="Date when assessment was made"
+    )
+
+    @model_validator(mode="after")
+    def validate_risk_level(self) -> "VirusRiskAssessment":
+        """Ensure risk level is between 1 and 10"""
+        if hasattr(self, "risk_level"):
+            self.risk_level = max(1, min(10, self.risk_level))
+        return self
+
+    @model_validator(mode="after")
+    def check_fields_not_empty(self) -> "VirusRiskAssessment":
+        """Ensure fields are not empty"""
+        for field in self.model_fields:
+            value = getattr(self, field)
+            if isinstance(value, str) and not value:
+                setattr(self, field, f"No data available for {field}")
+        return self
+
+    model_config = {"validate_assignment": True}
 
 
 @tool
@@ -21,19 +57,25 @@ def assess_virus_risk(virus_name: str, current_data: str, assessment_date: str) 
     if not current_data:
         return "No current data available for analysis."
 
-    prompt = f"""Based on this information about {virus_name}:
+    # Define the expected schema using the Pydantic model
+    schema = {
+        "risk_level": "number between 1-10",
+        "transmission": "analysis of transmission potential",
+        "mortality": "analysis of mortality rates",
+        "mutation": "analysis of mutation potential",
+        "containment": "analysis of containment status",
+        "treatment": "analysis of available treatments",
+        "summary": "brief explanation of overall risk",
+        "assessment_date": assessment_date,
+    }
+
+    schema_str = json.dumps(schema, indent=2)
+
+    prompt = f"""Based on this information about {virus_name} (assessment date: {assessment_date}):
 {current_data}
 
 Please provide a risk assessment in JSON format using this structure:
-{{
-  "risk_level": <number between 1-10>,
-  "transmission": "<analysis of transmission potential>",
-  "mortality": "<analysis of mortality rates>",
-  "mutation": "<analysis of mutation potential>",
-  "containment": "<analysis of containment status>",
-  "treatment": "<analysis of available treatments>",
-  "summary": "<brief explanation of overall risk>"
-}}
+{schema_str}
 
 Make sure your response contains ONLY valid JSON that can be parsed directly. Do not include any markdown formatting, code block indicators, or explanatory text before or after the JSON.
 """
@@ -56,19 +98,25 @@ def assess_h5n1_risk(current_data: str, assessment_date: str) -> str:
     if not current_data:
         return "No current data available for analysis."
 
-    prompt = f"""Based on this information about H5N1 (Avian Influenza):
+    # Define the expected schema using the Pydantic model
+    schema = {
+        "risk_level": "number between 1-10",
+        "transmission": "analysis of transmission potential",
+        "mortality": "analysis of mortality rates",
+        "mutation": "analysis of mutation potential",
+        "containment": "analysis of containment status",
+        "treatment": "analysis of available treatments",
+        "summary": "brief explanation of overall risk",
+        "assessment_date": assessment_date,
+    }
+
+    schema_str = json.dumps(schema, indent=2)
+
+    prompt = f"""Based on this information about H5N1 (Avian Influenza) (assessment date: {assessment_date}):
 {current_data}
 
 Please provide a risk assessment in JSON format using this structure:
-{{
-  "risk_level": <number between 1-10>,
-  "transmission": "<analysis of transmission potential>",
-  "mortality": "<analysis of mortality rates>",
-  "mutation": "<analysis of mutation potential>",
-  "containment": "<analysis of containment status>",
-  "treatment": "<analysis of available treatments>",
-  "summary": "<brief explanation of overall risk>"
-}}
+{schema_str}
 
 Make sure your response contains ONLY valid JSON that can be parsed directly. Do not include any markdown formatting, code block indicators, or explanatory text before or after the JSON.
 """
@@ -77,7 +125,7 @@ Make sure your response contains ONLY valid JSON that can be parsed directly. Do
 
 
 @tool
-def clean_agent_response(response: str) -> Dict[str, Any]:
+def clean_agent_response(response: str) -> dict[str, Any]:
     """
     Cleans up agent responses and extracts the structured JSON data.
 
@@ -87,47 +135,26 @@ def clean_agent_response(response: str) -> Dict[str, Any]:
     Returns:
         A dictionary with cleaned and structured risk assessment data
     """
-    # Initialize with default values
-    default_data = {
-        "risk_level": 5,
-        "transmission": "",
-        "mortality": "",
-        "mutation": "",
-        "containment": "",
-        "treatment": "",
-        "summary": "",
-    }
+    # Default assessment data using Pydantic model
+    default_assessment: dict[str, Any] = VirusRiskAssessment().model_dump()
 
-    # Try to extract just the JSON portion from the response
-    try:
-        # Find JSON-like content between curly braces
-        json_match = re.search(r"({[\s\S]*})", response)
-        if json_match:
-            json_str = json_match.group(1)
-            # Parse the JSON
-            parsed_data = json.loads(json_str)
+    # Initial json extraction attempt
+    extracted_json = extract_json_from_text(response)
 
-            # Make sure all expected fields are present
-            for key in default_data:
-                if key not in parsed_data:
-                    parsed_data[key] = default_data[key]
+    # Verify extracted_json is a proper dictionary with string keys
+    if isinstance(extracted_json, dict) and all(
+        isinstance(key, str) for key in extracted_json.keys()
+    ):
+        try:
+            # Use Pydantic to validate and clean the data
+            validated_assessment = VirusRiskAssessment(**extracted_json)
+            return cast(dict[str, Any], validated_assessment.model_dump())
+        except Exception as e:
+            print(f"Validation error: {e}")
 
-            # Ensure risk_level is an integer between 1-10
-            if "risk_level" in parsed_data:
-                try:
-                    risk_level = int(parsed_data["risk_level"])
-                    parsed_data["risk_level"] = max(1, min(10, risk_level))
-                except (ValueError, TypeError):
-                    parsed_data["risk_level"] = default_data["risk_level"]
-
-            return parsed_data
-
-    except (json.JSONDecodeError, AttributeError) as e:
-        print(f"Error parsing JSON: {e}")
-
-    # If we failed to parse JSON, try the old approach
-    cleaned_data = default_data.copy()
-    current_field = None
+    # If JSON extraction failed, try the fallback approach with regex parsing
+    cleaned_data = default_assessment.copy()
+    current_field: Optional[str] = None
 
     for line in response.split("\n"):
         line = line.strip()
@@ -140,28 +167,37 @@ def clean_agent_response(response: str) -> Dict[str, Any]:
             value = parts[1].strip() if len(parts) > 1 else ""
 
             # Map field names
-            if field == "risk_level":
-                try:
-                    # Extract first number from value
-                    numbers = re.findall(r"\d+", value)
-                    if numbers:
-                        cleaned_data["risk_level"] = min(max(1, int(numbers[0])), 10)
-                except (ValueError, IndexError):
-                    pass
-            elif field in cleaned_data:
-                current_field = field
-                cleaned_data[current_field] = value
+            normalized_field = field.replace(" ", "_").lower()
+            if normalized_field in cleaned_data:
+                current_field = normalized_field
+
+                if normalized_field == "risk_level":
+                    try:
+                        # Extract first number from value
+                        numbers = re.findall(r"\d+", value)
+                        if numbers:
+                            cleaned_data[normalized_field] = int(numbers[0])
+                    except (ValueError, IndexError):
+                        pass
+                else:
+                    cleaned_data[normalized_field] = value
         elif current_field and current_field != "risk_level":
             if cleaned_data[current_field]:
                 cleaned_data[current_field] += " " + line
             else:
                 cleaned_data[current_field] = line
 
-    return cleaned_data
+    # Validate with Pydantic one more time to ensure all constraints are met
+    try:
+        validated_assessment = VirusRiskAssessment(**cleaned_data)
+        return cast(dict[str, Any], validated_assessment.model_dump())
+    except Exception as e:
+        print(f"Final validation error: {e}")
+        return default_assessment
 
 
 @tool
-def extract_json_from_text(text: str) -> Dict[str, Any]:
+def extract_json_from_text(text: str) -> dict[str, Any]:
     """
     Attempts to extract JSON from text response, handling various formats.
 
@@ -171,27 +207,38 @@ def extract_json_from_text(text: str) -> Dict[str, Any]:
     Returns:
         Extracted JSON as a dictionary or empty dict if no valid JSON found
     """
-    # Try to find JSON pattern with matching braces
-    json_pattern = re.compile(r"({[\s\S]*})")
-    match = json_pattern.search(text)
+    if not text:
+        return {}
 
-    if match:
+    # Try to find JSON pattern with matching braces
+    json_pattern = re.compile(r"({[\s\S]*?})")
+    matches = json_pattern.findall(text)
+
+    for match in matches:
         try:
-            json_str = match.group(1)
-            return json.loads(json_str)
+            json_data = json.loads(match)
+            # Ensure we have a dictionary with string keys
+            if isinstance(json_data, dict) and all(
+                isinstance(key, str) for key in json_data.keys()
+            ):
+                return cast(dict[str, Any], json_data)
         except json.JSONDecodeError:
-            pass
+            continue
 
     # If that fails, try to find content between ```json and ``` markers
     code_block_pattern = re.compile(r"```(?:json)?\s*([\s\S]*?)\s*```")
-    match = code_block_pattern.search(text)
+    matches = code_block_pattern.findall(text)
 
-    if match:
+    for match in matches:
         try:
-            json_str = match.group(1)
-            return json.loads(json_str)
+            code_data = json.loads(match)
+            # Ensure we have a dictionary with string keys
+            if isinstance(code_data, dict) and all(
+                isinstance(key, str) for key in code_data.keys()
+            ):
+                return cast(dict[str, Any], code_data)
         except json.JSONDecodeError:
-            pass
+            continue
 
     # Return empty dict if no valid JSON found
     return {}
