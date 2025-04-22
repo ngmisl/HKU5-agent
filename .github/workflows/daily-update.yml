@@ -53,7 +53,7 @@ jobs:
         run: npm ci
 
       - name: Deploy to Orbiter
-        uses: orbiterhost/orbiter-github-actions@v0.1.6
+        uses: orbiterhost/orbiter-github-actions@v0.1.7
         with:
           project-name: "arewefucked"
           build-dir: "./dist"
